@@ -15,6 +15,7 @@ class Metadata:
             "parentDatasetName": [train_filename, test_filename],
             "timeCreated": self.now_time,
             "_id": 0,
+            "fields": [],
             "type": "builder",
             "finished": False,
         }
@@ -37,12 +38,20 @@ class Metadata:
 
         return metadata
 
+    def update_file(self, filename, new_value):
+        metadata_file_query = {"_id": 0}
+        self.database_connector.update_one(
+            filename,
+            new_value,
+            metadata_file_query)
+
     def update_finished_flag(self, filename, flag):
         flag_true_query = {"finished": flag}
         metadata_file_query = {"_id": 0}
-        self.database_connector.update_one(filename,
-                                           flag_true_query,
-                                           metadata_file_query)
+        self.database_connector.update_one(
+            filename,
+            flag_true_query,
+            metadata_file_query)
 
 
 class Database:

@@ -27,7 +27,6 @@ class Histogram:
 
         for field in fields:
             field_accumulator = "$" + field
-            print(field_accumulator, flush=True)
             pipeline = [
                 {"$group": {"_id": field_accumulator, "count": {"$sum": 1}}}]
 

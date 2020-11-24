@@ -95,7 +95,8 @@ class Model:
 
         for classifier in classifier_threads:
             testing_prediction, metadata_document = classifier.result()
-            self.save_classifier_result(
+            self.thread_pool.submit(
+                self.save_classifier_result,
                 testing_prediction,
                 metadata_document
             )
@@ -161,13 +162,17 @@ class Model:
 
         return testing_prediction, metadata_document
 
-    def save_classifier_result(self, predicted_df, filename_metadata):
+    def save_classifier_result(self, predicted_df, metadata):
+        filename = metadata["datasetName"]
+
         self.database.update_one(
-            filename_metadata["datasetName"],
-            filename_metadata,
+            filename,
+            metadata,
             {self.DOCUMENT_ID_NAME: self.METADATA_DOCUMENT_ID})
 
-        document_id = 1
+        first_document_id = 1
+        document_id = first_document_id
+
         for row in predicted_df.collect():
             row_dict = row.asDict()
             row_dict["_id"] = document_id
@@ -178,11 +183,17 @@ class Model:
             del row_dict["features"]
             del row_dict["rawPrediction"]
 
-            self.database.insert_one_in_file(filename_metadata["datasetName"],
-                                             row_dict)
+            self.database.insert_one_in_file(filename, row_dict)
+
+            if document_id == first_document_id:
+                updated_content = {"fields": list(row_dict.keys())}
+                self.metadata_creator.update_file(
+                    filename,
+                    updated_content
+                )
 
         self.metadata_creator.update_finished_flag(
-            filename_metadata["datasetName"], True)
+            filename, True)
 
     def file_processor(self, database_url, spark_session):
         file = spark_session.read.format("mongo").option(

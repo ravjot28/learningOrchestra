@@ -117,7 +117,7 @@ class Csv:
             "timeCreated": london_time.strftime("%Y-%m-%dT%H:%M:%S-00:00"),
             self.ROW_ID: self.METADATA_ROW_ID,
             self.FINISHED: False,
-            "fields": "processing",
+            "fields": [],
             "type": "dataset"
         }
         self.database_connection.insert_one_in_file(filename, metadata_file)
@@ -152,8 +152,6 @@ class UserRequest:
             response_content_type = \
                 response_content_type.split(self.URL_CONTENT_TYPE_SEPARATOR)[
                     self.URL_CONTENT_TYPE_INDEX]
-
-        print(response_content_type, flush=True)
 
         allowed_contents_type = ["application/x-download",
                                  "text/csv",

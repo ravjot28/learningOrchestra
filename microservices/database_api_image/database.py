@@ -28,6 +28,14 @@ class Dataset:
         return result
 
     def delete_file(self, filename):
+        update_query = {"finished": False}
+        find_query = {self.ROW_ID: self.METADATA_ROW_ID}
+
+        self.database_connector.update_one_in_file(
+            filename,
+            update_query,
+            find_query)
+
         self.database_connector.delete_file(filename)
 
     def get_files(self, file_type):

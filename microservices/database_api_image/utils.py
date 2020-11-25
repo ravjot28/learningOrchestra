@@ -41,8 +41,9 @@ class Database:
         file_collection.insert_one(json_object)
 
     def update_one_in_file(self, filename, new_value, query):
+        new_values_query = {"$set": new_value}
         file_collection = self.database[filename]
-        file_collection.update_one(new_value, query)
+        file_collection.update_one(query, new_values_query)
 
     def find_one_in_file(self, filename, query):
         file_collection = self.database[filename]
@@ -123,10 +124,13 @@ class Csv:
         self.database_connection.insert_one_in_file(filename, metadata_file)
 
     def update_medata_finished_flag(self, filename, flag):
+        update_query = {self.FINISHED: flag, "fields": self.file_headers}
+        find_query = {self.ROW_ID: self.METADATA_ROW_ID}
+
         self.database_connection.update_one_in_file(
             filename,
-            {self.ROW_ID: self.METADATA_ROW_ID},
-            {"$set": {self.FINISHED: flag, "fields": self.file_headers}},
+            update_query,
+            find_query
         )
 
 

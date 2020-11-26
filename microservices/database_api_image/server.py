@@ -123,7 +123,7 @@ def delete_file(filename):
     database = Dataset(database_connector, file_downloader)
 
     request_validator = UserRequest(database_connector)
-    request_errors = analyse_request_errors_post(
+    request_errors = analyse_request_errors_delete(
         request_validator,
         filename,
     )

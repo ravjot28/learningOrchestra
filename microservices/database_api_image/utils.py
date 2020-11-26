@@ -137,17 +137,24 @@ class Csv:
 class UserRequest:
     MESSAGE_INVALID_URL = "invalid url"
     MESSAGE_DUPLICATE_FILE = "duplicate file"
+    MESSAGE_MISSING_FILE = "nonexistent file"
     URL_CONTENT_TYPE_INDEX = 0
     URL_CONTENT_TYPE_SEPARATOR = ";"
 
     def __init__(self, database_connector):
         self.database = database_connector
 
-    def filename_validator(self, filename):
+    def filename_nonexistence_validator(self, filename):
         filenames = self.database.get_filenames()
 
         if filename in filenames:
             raise Exception(self.MESSAGE_DUPLICATE_FILE)
+
+    def filename_existence_validator(self, filename):
+        filenames = self.database.get_filenames()
+
+        if filename not in filenames:
+            raise Exception(self.MESSAGE_MISSING_FILE)
 
     def csv_url_validator(self, url):
         response_content_type = requests.head(url).headers.get("content-type")

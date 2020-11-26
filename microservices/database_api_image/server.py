@@ -8,6 +8,7 @@ HTTP_STATUS_CODE_SUCCESS = 200
 HTTP_STATUS_CODE_SUCCESS_CREATED = 201
 HTTP_STATUS_CODE_NOT_ACCEPTABLE = 406
 HTTP_STATUS_CODE_CONFLICT = 409
+HTTP_STATUS_CODE_NOT_FOUND = 404
 
 DATABASE_API_HOST = "DATABASE_API_HOST"
 DATABASE_API_PORT = "DATABASE_API_PORT"
@@ -49,7 +50,7 @@ def create_file():
 
     request_validator = UserRequest(database_connector)
 
-    request_errors = analyse_request_errors(
+    request_errors = analyse_request_errors_post(
         request_validator,
         filename,
         url)
@@ -121,6 +122,15 @@ def delete_file(filename):
     file_downloader = Csv(database_connector)
     database = Dataset(database_connector, file_downloader)
 
+    request_validator = UserRequest(database_connector)
+    request_errors = analyse_request_errors_post(
+        request_validator,
+        filename,
+    )
+
+    if request_errors is not None:
+        return request_errors
+
     thread_pool = ThreadPoolExecutor()
     thread_pool.submit(database.delete_file, filename)
 
@@ -128,9 +138,9 @@ def delete_file(filename):
         {MESSAGE_RESULT: MESSAGE_DELETED_FILE}), HTTP_STATUS_CODE_SUCCESS
 
 
-def analyse_request_errors(request_validator, filename, url):
+def analyse_request_errors_post(request_validator, filename, url):
     try:
-        request_validator.filename_validator(
+        request_validator.filename_nonexistence_validator(
             filename
         )
     except Exception as invalid_filename:
@@ -147,6 +157,19 @@ def analyse_request_errors(request_validator, filename, url):
             HTTP_STATUS_CODE_NOT_ACCEPTABLE,
         )
 
+    return None
+
+
+def analyse_request_errors_delete(request_validator, filename):
+    try:
+        request_validator.filename_existence_validator(
+            filename
+        )
+    except Exception as invalid_filename:
+        return (
+            jsonify({MESSAGE_RESULT: invalid_filename.args[FIRST_ARGUMENT]}),
+            HTTP_STATUS_CODE_NOT_FOUND,
+        )
     return None
 
 

@@ -2,6 +2,8 @@ from pymongo import MongoClient
 from datetime import datetime
 import pytz
 
+from constants import *
+
 
 class Metadata:
     def __init__(self, database_connector):
@@ -14,18 +16,18 @@ class Metadata:
         metadata_file = {
             "datasetName": filename,
             "timeCreated": london_time.strftime("%Y-%m-%dT%H:%M:%S-00:00"),
-            "_id": 0,
-            "finished": False,
-            "type": "dataType"
+            DOCUMENT_ID_NAME: METADATA_ID,
+            FINISHED_FIELD_NAME: False,
+            "type": "normalization"
         }
         self.database_connector.insert_one_in_file(filename, metadata_file)
 
     def update_finished_flag(self, filename: str, flag: str):
         metadata_new_value = {
-            "finished": flag,
+            FINISHED_FIELD_NAME: flag,
         }
         metadata_query = {
-            "_id": 0
+            DOCUMENT_ID_NAME: METADATA_ID
         }
         self.database_connector.update_one(filename, metadata_new_value,
                                            metadata_query)
@@ -38,14 +40,14 @@ class Database:
             database_url + '/?replicaSet=' + replica_set, int(database_port))
         self.__database = self.__mongo_client[database_name]
 
-    def find(self, filename: str, query: dict) -> dict:
+    def find(self, filename: str, query: list) -> dict:
         file_collection = self.__database[filename]
-        return file_collection.find(query)
+        return file_collection.find(*query)
 
     def get_filenames(self) -> list:
         return self.__database.list_collection_names()
 
-    def update_one(self, filename: str, new_value: int, query: dict):
+    def update_one(self, filename: str, new_value: any, query: dict):
         new_values_query = {"$set": new_value}
         file_collection = self.__database[filename]
         file_collection.update_one(query, new_values_query)
